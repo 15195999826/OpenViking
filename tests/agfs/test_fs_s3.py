@@ -13,6 +13,7 @@ import botocore
 import pytest
 
 from openviking.agfs_manager import AGFSManager
+from openviking.storage.transaction import init_lock_manager, reset_lock_manager
 from openviking.storage.viking_fs import VikingFS, init_viking_fs
 from openviking_cli.utils.config.agfs_config import AGFSConfig
 
@@ -82,11 +83,13 @@ async def viking_fs_instance():
     # Create AGFS client
     agfs_client = create_agfs_client(AGFS_CONF)
 
-    # Initialize VikingFS with client
+    # Initialize LockManager and VikingFS with client
+    init_lock_manager(agfs=agfs_client)
     vfs = init_viking_fs(agfs=agfs_client)
 
     yield vfs
 
+    reset_lock_manager()
     # AGFSManager.stop is synchronous
     manager.stop()
 
